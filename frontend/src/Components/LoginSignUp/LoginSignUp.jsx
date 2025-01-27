@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./LoginSignUp.css";
 import { Mail, Lock, User, Phone, MapPin, Calendar } from "lucide-react";
 import PasswordReset from "../PasswordReset/PasswordReset";
+import LoadingSpinner from "../CinemaDashboard/CinemaManagement/LoadingSpinner/LoadingSpinner";
 import apiClient from "../../api/apiClient";
 
 const LoginSignUp = () => {
@@ -38,21 +39,48 @@ const LoginSignUp = () => {
     }));
   };
 
+  const fetchProfileId = async (token) => {
+    try {
+      const response = await apiClient.get("/account/admin/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.id;
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      throw new Error("Failed to fetch profile information");
+    }
+  };
+
   const handleSubmit = async (type) => {
     if (type === "Đăng nhập") {
       setIsLoading(true);
       setError("");
 
       try {
-        const response = await apiClient.post("/auth/sign-in", {
+        // First, perform the login
+        const loginResponse = await apiClient.post("/auth/sign-in", {
           email: formData.email,
           password: formData.password,
         });
 
-        if (response.data.accessToken) {
-          localStorage.setItem("token", response.data.accessToken);
-          localStorage.setItem("userId", response.data.userId);
-          navigate("/home");
+        if (loginResponse.data.accessToken) {
+          const token = loginResponse.data.accessToken;
+          localStorage.setItem("token", token);
+
+          // After successful login, fetch the profile ID
+          try {
+            const profileId = await fetchProfileId(token);
+            // Update the userId in localStorage with the profile ID
+            localStorage.setItem("userId", profileId.toString());
+            navigate("/home");
+          } catch (profileError) {
+            // If profile fetch fails, clear token and show error
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            setError("Failed to fetch user profile. Please try again.");
+          }
         }
       } catch (err) {
         console.error("Login error:", err);
@@ -111,11 +139,7 @@ const LoginSignUp = () => {
             </div>
           )}
 
-          {isLoading && (
-            <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              Logging in...
-            </div>
-          )}
+          {isLoading && <LoadingSpinner />}
 
           <div className="inputs">
             {action === "Đăng ký" && (

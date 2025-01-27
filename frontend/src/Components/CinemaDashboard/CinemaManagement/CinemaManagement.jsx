@@ -13,6 +13,7 @@ import CinemaSideBar from "../CinemaSideBar/CinemaSideBar";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
 import "./CinemaManagement.css";
+import LoadingSpinner from "./LoadingSpinner/LoadingSpinner";
 import apiClient from "../../../api/apiClient";
 
 const CinemaManagement = () => {
@@ -62,7 +63,15 @@ const CinemaManagement = () => {
   const searchCinemas = useCallback(
     async (searchTerm) => {
       setIsLoading(true);
+
+      // Create a promise that resolves after 5 seconds
+      const delay = new Promise((resolve) => setTimeout(resolve, 1000));
+
       try {
+        // Wait for 1 seconds first
+        await delay;
+
+        // Then fetch the data
         const response = await apiClient.get(`/admin/cinema`, {
           params: searchTerm ? { query: searchTerm } : {},
         });
@@ -136,9 +145,14 @@ const CinemaManagement = () => {
     setIsLoading(true);
     setError(null);
 
+    const delay = new Promise((resolve) => setTimeout(resolve, 1000));
+
     try {
+      // Wait for 5 seconds first
+      await delay;
+
       const payload = {
-        cityId: editFormData.cityId, // Updated cityId
+        cityId: editFormData.cityId,
         name: editFormData.name,
         address: editFormData.address,
         status: editFormData.status,
@@ -149,28 +163,10 @@ const CinemaManagement = () => {
         payload
       );
 
-      const data = response.data; // Check response status
+      const data = response.data;
       if (data.status !== "success") {
         throw new Error(data.message || "Failed to update cinema");
       }
-
-      // Update local state to reflect changes
-
-      // setCinemas((prevCinemas) =>
-      //   prevCinemas.map((cinema) =>
-      //     cinema.id === editingCinema.id
-      //       ? {
-      //           ...cinema,
-      //           name: editFormData.name,
-      //           city:
-      //             cities.find((city) => city.id === editFormData.cityId)
-      //               ?.name || "Unknown",
-      //           address: editFormData.address,
-      //           status: editFormData.status === 1 ? "active" : "inactive",
-      //         }
-      //       : cinema
-      //   )
-      // );
 
       await searchCinemas(filterValue);
 
@@ -189,7 +185,14 @@ const CinemaManagement = () => {
     setIsLoading(true);
     setError(null);
 
+    // Create a promise that resolves after 5 seconds
+    const delay = new Promise((resolve) => setTimeout(resolve, 1000));
+
     try {
+      // Wait for 5 seconds first
+      await delay;
+
+      // Then perform the add operation
       const response = await apiClient.post(`/admin/cinema`, newCinema);
       const data = await response.data;
 
@@ -292,15 +295,18 @@ const CinemaManagement = () => {
     setIsLoading(true);
     setError(null);
 
+    const delay = new Promise((resolve) => setTimeout(resolve, 1000));
+
     try {
+      // Wait for 5 seconds first
+      await delay;
+
       await apiClient.delete("/admin/cinema", {
-        data: selectedCinemas, // Send array of IDs to be deleted
+        data: selectedCinemas,
       });
 
-      // After successful deletion, refresh the cinema list
       await searchCinemas(filterValue);
 
-      // Clear selections and close modal
       setSelectedCinemas([]);
       setShowDeleteConfirmation(false);
     } catch (error) {
@@ -317,6 +323,7 @@ const CinemaManagement = () => {
 
   return (
     <div className="cinema-management-container">
+      {isLoading && <LoadingSpinner />}
       <CinemaHeader />
       <div className="dashboard-content">
         <CinemaSideBar />
@@ -357,9 +364,7 @@ const CinemaManagement = () => {
                   value={filterValue}
                   onChange={handleSearchChange}
                 />
-                {isLoading && (
-                  <span className="loading-indicator">Searching...</span>
-                )}
+                {isLoading && <LoadingSpinner />}
               </div>
               <select
                 value={statusFilter}

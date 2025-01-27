@@ -13,6 +13,7 @@ import CinemaHeader from "../CinemaHeader/CinemaHeader";
 import CinemaSideBar from "../CinemaSideBar/CinemaSideBar";
 import { api } from "../../../api/apiClient";
 import "./CinemaScreens.css";
+import LoadingSpinner from "../CinemaManagement/LoadingSpinner/LoadingSpinner";
 
 const CinemaScreens = () => {
   const { cinemaId } = useParams();
@@ -243,8 +244,8 @@ const CinemaScreens = () => {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan="6" className="loading-message">
-                        Loading screens...
+                      <td colSpan="6" className="loading-cell">
+                        <LoadingSpinner />
                       </td>
                     </tr>
                   ) : filteredScreens.length === 0 ? (

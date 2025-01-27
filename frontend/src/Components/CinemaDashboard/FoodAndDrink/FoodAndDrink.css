@@ -222,3 +222,40 @@
 .action-button:hover {
   opacity: 1;
 }
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  background-color: #3a3a3a;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: #4a4a4a;
+}
+
+.pagination-controls span {
+  color: #999;
+}
+
+/* Update filters section to accommodate the new page size selector */
+.filters select {
+  min-width: 120px;
+}

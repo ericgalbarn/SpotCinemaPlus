@@ -190,11 +190,120 @@ const api = {
         const response = await apiClient.get(`/admin/screen/${screenId}/seat`);
         return response.data;
       } catch (error) {
-        if (error.response?.status === 403) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token"); // Clear invalid token
+          window.location.href = "/login"; // Redirect to login
           throw new Error("Authentication required. Please log in again.");
         }
         throw new Error(
           error.response?.data?.message || "Failed to fetch seats"
+        );
+      }
+    },
+    updateSeat: async (screenId, seatUpdates) => {
+      try {
+        // Ensure token is present
+        const token = getAuthToken();
+
+        const response = await apiClient.put(
+          `/admin/screen/${screenId}/seat`,
+          seatUpdates,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token"); // Clear invalid token
+          window.location.href = "/login"; // Redirect to login
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to update seats"
+        );
+      }
+    },
+    initializeSeats: async (screenId, seatLayout) => {
+      try {
+        // Ensure token is present
+        const token = getAuthToken();
+
+        const response = await apiClient.post(
+          `/admin/screen/${screenId}/seat`,
+          seatLayout,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token"); // Clear invalid token
+          window.location.href = "/login"; // Redirect to login
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to initialize seats"
+        );
+      }
+    },
+  },
+  foodAndDrink: {
+    getAllFood: async (
+      query = "",
+      page = 0,
+      size = 10,
+      sort = ["lastModifiedDate,desc"]
+    ) => {
+      try {
+        const response = await apiClient.get("/admin/food", {
+          params: {
+            query,
+            page,
+            size,
+            sort,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 403) {
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch food items"
+        );
+      }
+    },
+
+    getAllDrink: async (
+      query = "",
+      page = 0,
+      size = 10,
+      sort = ["lastModifiedDate,desc"]
+    ) => {
+      try {
+        const response = await apiClient.get("/admin/drink", {
+          params: {
+            query,
+            page,
+            size,
+            sort,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 403) {
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch drink items"
         );
       }
     },
