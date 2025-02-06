@@ -4,21 +4,21 @@ import "./SeatInitialization.css";
 import { api } from "../../../../api/apiClient";
 
 const SEAT_TYPES = {
-  [-1]: { name: "Not Placeable", color: "#424242" },
-  0: { name: "Placeable", color: "#4CAFEB" },
-  1: { name: "Standard", color: "#C0C0C0" },
-  2: { name: "VIP", color: "#FFD700" },
-  3: { name: "Lovers", color: "#FF4081" },
-  4: { name: "Bed", color: "#6A0DAD" },
+  NOT_PLACEABLE: { name: "Not Placeable", color: "#424242" },
+  PLACEABLE: { name: "Placeable", color: "#4CAFEB" },
+  STANDARD: { name: "Standard", color: "#C0C0C0" },
+  VIP: { name: "VIP", color: "#FFD700" },
+  LOVERS: { name: "Lovers", color: "#FF4081" },
+  BED: { name: "Bed", color: "#6A0DAD" },
 };
 
 const SeatInitialization = ({ screenId, onClose, onSuccess }) => {
   const [grid, setGrid] = useState(
     Array(15)
       .fill()
-      .map(() => Array(10).fill(0))
+      .map(() => Array(10).fill("PLACEABLE"))
   );
-  const [selectedType, setSelectedType] = useState(0);
+  const [selectedType, setSelectedType] = useState("PLACEABLE");
   const [isInitializing, setIsInitializing] = useState(false);
 
   const handleCellClick = (row, col) => {
@@ -26,7 +26,7 @@ const SeatInitialization = ({ screenId, onClose, onSuccess }) => {
     const seatSize = seatType?.size || { rows: 1, cols: 1 };
 
     // For multi-seat types
-    if (selectedType >= 3) {
+    if (["LOVERS", "BED"].includes(selectedType)) {
       const maxRow = row + seatSize.rows - 1;
       const maxCol = col + seatSize.cols - 1;
 
@@ -61,11 +61,10 @@ const SeatInitialization = ({ screenId, onClose, onSuccess }) => {
           const seatType = SEAT_TYPES[typeId];
           if (seatType) {
             // For multi-seat types, check if this is the root position
-            const isRoot =
-              typeId >= 3
-                ? isRootPosition(grid, rowIndex, colIndex, typeId)
-                : true;
-            if (isRoot || typeId < 3) {
+            const isRoot = ["LOVERS", "BED"].includes(typeId)
+              ? isRootPosition(grid, rowIndex, colIndex, typeId)
+              : true;
+            if (isRoot || !["LOVERS", "BED"].includes(typeId)) {
               seatLayout.push({
                 row: rowIndex,
                 col: colIndex,
@@ -120,9 +119,9 @@ const SeatInitialization = ({ screenId, onClose, onSuccess }) => {
             <div
               key={typeId}
               className={`init-legend-item ${
-                selectedType === parseInt(typeId) ? "active" : ""
+                selectedType === typeId ? "active" : ""
               }`}
-              onClick={() => setSelectedType(parseInt(typeId))}
+              onClick={() => setSelectedType(typeId)}
             >
               <div
                 className="init-legend-color"

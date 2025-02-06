@@ -255,59 +255,6 @@ const api = {
       }
     },
   },
-  foodAndDrink: {
-    getAllFood: async (
-      query = "",
-      page = 0,
-      size = 10,
-      sort = ["lastModifiedDate,desc"]
-    ) => {
-      try {
-        const response = await apiClient.get("/admin/food", {
-          params: {
-            query,
-            page,
-            size,
-            sort,
-          },
-        });
-        return response.data;
-      } catch (error) {
-        if (error.response?.status === 403) {
-          throw new Error("Authentication required. Please log in again.");
-        }
-        throw new Error(
-          error.response?.data?.message || "Failed to fetch food items"
-        );
-      }
-    },
-
-    getAllDrink: async (
-      query = "",
-      page = 0,
-      size = 10,
-      sort = ["lastModifiedDate,desc"]
-    ) => {
-      try {
-        const response = await apiClient.get("/admin/drink", {
-          params: {
-            query,
-            page,
-            size,
-            sort,
-          },
-        });
-        return response.data;
-      } catch (error) {
-        if (error.response?.status === 403) {
-          throw new Error("Authentication required. Please log in again.");
-        }
-        throw new Error(
-          error.response?.data?.message || "Failed to fetch drink items"
-        );
-      }
-    },
-  },
 };
 
 export { api };

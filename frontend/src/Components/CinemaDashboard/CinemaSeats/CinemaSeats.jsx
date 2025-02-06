@@ -7,12 +7,12 @@ import LoadingSpinner from "../CinemaManagement/LoadingSpinner/LoadingSpinner";
 import SeatInitialization from "./SeatInitialization/SeatInitialization";
 
 const SEAT_TYPES = {
-  [-1]: { name: "Not Placeable", color: "#424242" },
-  0: { name: "Placeable", color: "#4CAFEB" },
-  1: { name: "Standard", color: "#C0C0C0" },
-  2: { name: "VIP", color: "#FFD700" },
-  3: { name: "Lovers", color: "#FF4081", size: { rows: 1, cols: 2 } },
-  4: { name: "Bed", color: "#6A0DAD", size: { rows: 2, cols: 2 } },
+  NOT_PLACEABLE: { name: "Not Placeable", color: "#424242" },
+  PLACEABLE: { name: "Placeable", color: "#4CAFEB" },
+  STANDARD: { name: "Standard", color: "#C0C0C0" },
+  VIP: { name: "VIP", color: "#FFD700" },
+  LOVERS: { name: "Lovers", color: "#FF4081", size: { rows: 1, cols: 2 } },
+  BED: { name: "Bed", color: "#6A0DAD", size: { rows: 2, cols: 2 } },
 };
 
 const CinemaSeats = () => {
@@ -41,7 +41,7 @@ const CinemaSeats = () => {
     seatsData.forEach((seat) => {
       matrix[seat.row][seat.col] = {
         ...seat,
-        type: SEAT_TYPES[seat.typeId] || SEAT_TYPES[0],
+        type: SEAT_TYPES[seat.typeId] || SEAT_TYPES["PLACEABLE"],
       };
     });
 
@@ -78,7 +78,7 @@ const CinemaSeats = () => {
   }, [fetchData]);
 
   const handleSeatClick = (seat, row, col) => {
-    if (!seat || seat.typeId === -1) {
+    if (!seat || seat.typeId === "NOT_PLACEABLE") {
       setWarningMessage("Cannot edit Not Placeable seats");
       setTimeout(() => setWarningMessage(""), 3000);
       return;
@@ -93,8 +93,8 @@ const CinemaSeats = () => {
       const updatePayload = [];
       const currentSeats = seats.flat().filter((seat) => seat); // Get all non-null seats
 
-      // For Bed seats (typeId = 4), we need to check if we have enough space
-      if (newTypeId === 4) {
+      // For Bed seats, we need to check if we have enough space
+      if (newTypeId === "BED") {
         // Check if we're too close to the bottom or right edge
         if (
           selectedSeat.row >= seats.length - 1 ||
@@ -115,7 +115,7 @@ const CinemaSeats = () => {
 
         for (const [row, col] of positions) {
           const targetSeat = seats[row][col];
-          if (targetSeat?.typeId === -1) {
+          if (targetSeat?.typeId === "NOT_PLACEABLE") {
             setWarningMessage("Cannot place bed seat here - blocked positions");
             setIsUpdating(false);
             return;
@@ -147,15 +147,15 @@ const CinemaSeats = () => {
           updatePayload.push({
             row: seat.row,
             col: seat.col,
-            typeId: 0, // Placeable
+            typeId: "PLACEABLE", // Placeable
             rootRow: seat.row,
             rootCol: seat.col,
           });
         });
       } else {
         // Original logic for other seat types
-        if (newTypeId <= 2) {
-          // For single seats (Standard, VIP)
+        if (["STANDARD", "VIP", "PLACEABLE"].includes(newTypeId)) {
+          // For single seats (Standard, VIP, Placeable)
           updatePayload.push({
             row: selectedSeat.row,
             col: selectedSeat.col,
@@ -176,12 +176,12 @@ const CinemaSeats = () => {
             updatePayload.push({
               row: seat.row,
               col: seat.col,
-              typeId: 0, // Placeable
+              typeId: "PLACEABLE", // Placeable
               rootRow: seat.row,
               rootCol: seat.col,
             });
           });
-        } else if (newTypeId === 3) {
+        } else if (newTypeId === "LOVERS") {
           // For Lovers seats (1x2)
           if (selectedSeat.col >= seats[0].length - 1) {
             setWarningMessage("Not enough space for a lovers seat here");
@@ -272,16 +272,19 @@ const CinemaSeats = () => {
                   <div
                     key={`${rowIndex}-${colIndex}`}
                     className={`seat ${
-                      seat?.typeId === -1 ? "not-placeable" : ""
+                      seat?.typeId === "NOT_PLACEABLE" ? "not-placeable" : ""
                     }`}
                     style={{
                       backgroundColor: seat
                         ? seat.type.color
-                        : SEAT_TYPES[0].color,
+                        : SEAT_TYPES["PLACEABLE"].color,
                       border: `1px solid ${
-                        seat ? seat.type.color : SEAT_TYPES[0].color
+                        seat ? seat.type.color : SEAT_TYPES["PLACEABLE"].color
                       }`,
-                      cursor: seat?.typeId === -1 ? "not-allowed" : "pointer",
+                      cursor:
+                        seat?.typeId === "NOT_PLACEABLE"
+                          ? "not-allowed"
+                          : "pointer",
                     }}
                     onClick={() => handleSeatClick(seat, rowIndex, colIndex)}
                     title={
@@ -335,21 +338,19 @@ const CinemaSeats = () => {
                 <label>Select New Seat Type</label>
                 <div className="seat-type-options">
                   {Object.entries(SEAT_TYPES).map(([typeId, type]) => {
-                    if (parseInt(typeId) === -1) return null;
+                    if (typeId === "NOT_PLACEABLE") return null;
 
                     return (
                       <button
                         key={typeId}
                         className={`seat-type-button ${
-                          selectedSeat.typeId === parseInt(typeId)
-                            ? "active"
-                            : ""
+                          selectedSeat.typeId === typeId ? "active" : ""
                         }`}
                         style={{
                           backgroundColor: type.color,
                           opacity: isUpdating ? 0.5 : 1,
                         }}
-                        onClick={() => handleSeatUpdate(parseInt(typeId))}
+                        onClick={() => handleSeatUpdate(typeId)}
                         disabled={isUpdating}
                       >
                         {type.name}
