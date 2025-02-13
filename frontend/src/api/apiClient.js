@@ -1,4 +1,5 @@
 import axios from "axios";
+import moment from "moment";
 
 const apiClient = axios.create({
   baseURL: "http://10.147.17.110:8080/api/v1",
@@ -251,6 +252,180 @@ const api = {
         }
         throw new Error(
           error.response?.data?.message || "Failed to initialize seats"
+        );
+      }
+    },
+  },
+  concessions: {
+    getAll: async () => {
+      try {
+        // Get token from localStorage
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await apiClient.get("/admin/concession", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          // Clear token and redirect to login if unauthorized
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch concessions"
+        );
+      }
+    },
+
+    getById: async (concessionId) => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await apiClient.get(
+          `/admin/concession/${concessionId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch concession details"
+        );
+      }
+    },
+    create: async (concessionData) => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await apiClient.post(
+          "/admin/concession",
+          concessionData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to create concession"
+        );
+      }
+    },
+
+    update: async (concessionId, concessionData) => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await apiClient.put(
+          `/admin/concession/${concessionId}`,
+          concessionData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to update concession"
+        );
+      }
+    },
+  },
+  schedules: {
+    getByCinema: async (cinemaId) => {
+      try {
+        const response = await apiClient.get(
+          `/admin/cinema/${cinemaId}/schedule`
+        );
+
+        // Transform the API response to match Timeline component's expected format
+        const groups = [];
+        const items = [];
+
+        response.data.forEach((screenData) => {
+          // Add screen as a group
+          groups.push({
+            id: screenData.screenId,
+            title: screenData.screenName,
+          });
+
+          // Add each schedule as an item
+          screenData.schedules.forEach((schedule) => {
+            const startTime = moment(schedule.startDateTime);
+            const endTime = moment(schedule.startDateTime).add(
+              schedule.movieLength,
+              "minutes"
+            );
+
+            items.push({
+              id: schedule.scheduleId,
+              group: screenData.screenId,
+              title: schedule.movieName,
+              start_time: startTime,
+              end_time: endTime,
+              movieId: schedule.movieId,
+              status: schedule.status,
+              canMove: true,
+              canResize: false,
+              canChangeGroup: false,
+              itemProps: {
+                style: {
+                  background: "#E50914",
+                  color: "white",
+                  borderRadius: "4px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  width: "128px",
+                },
+              },
+            });
+          });
+        });
+
+        return { groups, items };
+      } catch (error) {
+        if (error.response?.status === 403) {
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch schedules"
         );
       }
     },

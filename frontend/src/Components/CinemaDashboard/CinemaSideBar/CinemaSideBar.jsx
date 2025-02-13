@@ -45,12 +45,15 @@ const CinemaSideBar = () => {
           <Calendar className="nav-icon" />
           <span>Schedule</span>
         </button>
+
         <button
-          onClick={() => handleNavigation("food-drink")}
-          className={`nav-button ${activeTab === "food-drink" ? "active" : ""}`}
+          onClick={() => handleNavigation("concession-management")}
+          className={`nav-button ${
+            activeTab === "concession-management" ? "active" : ""
+          }`}
         >
           <Coffee className="nav-icon" />
-          <span>Food & Drink</span>
+          <span>Concessions</span>
         </button>
       </nav>
     </div>

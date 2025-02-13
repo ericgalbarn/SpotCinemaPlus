@@ -1,120 +1,111 @@
-import React, { useState } from "react";
-import { Clock, Film, Plus, Filter } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import Timeline from "react-calendar-timeline";
+import "react-calendar-timeline/style.css";
 import CinemaHeader from "../CinemaHeader/CinemaHeader";
 import CinemaSideBar from "../CinemaSideBar/CinemaSideBar";
+import LoadingSpinner from "../../CinemaDashboard/CinemaManagement/LoadingSpinner/LoadingSpinner";
+import { api } from "../../../api/apiClient";
 import "./CinemaSchedules.css";
+import moment from "moment";
 
 const CinemaSchedules = () => {
-  const [selectedDate, setSelectedDate] = useState("2024-12-31");
+  const [isLoading, setIsLoading] = useState(true);
+  const [timelineItems, setTimelineItems] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [error, setError] = useState(null);
 
-  const schedules = [
-    {
-      id: 1,
-      movie: "Dune: Part Two",
-      hall: "Hall A",
-      time: "10:00 AM",
-      duration: "155 min",
-      capacity: "80%",
-      price: "$15",
-    },
-    {
-      id: 2,
-      movie: "Deadpool 3",
-      hall: "Hall B",
-      time: "1:30 PM",
-      duration: "120 min",
-      capacity: "65%",
-      price: "$12",
-    },
-    {
-      id: 3,
-      movie: "Godzilla x Kong",
-      hall: "Hall A",
-      time: "4:00 PM",
-      duration: "132 min",
-      capacity: "45%",
-      price: "$15",
-    },
-    {
-      id: 4,
-      movie: "Dune: Part Two",
-      hall: "Hall C",
-      time: "6:30 PM",
-      duration: "155 min",
-      capacity: "75%",
-      price: "$18",
-    },
-  ];
+  // Fetch schedules for the cinema
+
+  const fetchSchedules = async (cinemaId) => {
+    try {
+      setIsLoading(true);
+      const { groups: fetchedGroups, items: fetchedItems } =
+        await api.schedules.getByCinema(cinemaId);
+      setGroups(fetchedGroups);
+      setTimelineItems(fetchedItems);
+    } catch (err) {
+      setError(err.message);
+      console.error("Failed to fetch schedules:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Replace '1' with actual cinemaId from your app's state or URL params
+    fetchSchedules(1);
+  }, []);
+
+  const handleItemMove = (itemId, dragTime, newGroupOrder) => {
+    const roundToNearest15Min = (time) => {
+      const minutes = time.minutes();
+      const roundedMinutes = Math.round(minutes / 15) * 15;
+      return time.clone().minutes(roundedMinutes).seconds(0);
+    };
+
+    setTimelineItems((items) =>
+      items.map((item) => {
+        if (item.id === itemId) {
+          const snappedStartTime = roundToNearest15Min(moment(dragTime));
+          const movieLength = moment
+            .duration(item.end_time.diff(item.start_time))
+            .asMinutes();
+
+          return {
+            ...item,
+            start_time: snappedStartTime,
+            end_time: moment(snappedStartTime).add(movieLength, "minutes"),
+            group: groups[newGroupOrder].id,
+          };
+        }
+        return item;
+      })
+    );
+  };
 
   return (
-    <div className="dashboard-container">
+    <div className="cinema-management-container">
+      {isLoading && <LoadingSpinner />}
       <CinemaHeader />
-
       <div className="dashboard-content">
         <CinemaSideBar />
-
         <div className="main-content">
-          <div className="schedule-card">
-            <div className="schedule-header">
-              <div className="header-left">
-                <h2>Movie Schedules</h2>
-                <div className="date-picker">
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="header-actions">
-                <button className="filter-button">
-                  <Filter className="button-icon" />
-                  <span>Filter</span>
-                </button>
-                <button className="add-movie">
-                  <Plus className="add-icon" />
-                  <span>Add Schedule</span>
-                </button>
+          <div className="cinema-management">
+            <div className="cinema-header">
+              <div className="header-title">
+                <h1>Movie Schedules</h1>
+                <p>Manage your movie schedules</p>
               </div>
             </div>
-
-            <div className="schedules-grid">
-              {schedules.map((schedule) => (
-                <div key={schedule.id} className="schedule-item">
-                  <div className="schedule-item-left">
-                    <div className="movie-icon">
-                      <Film />
-                    </div>
-                    <div className="movie-info">
-                      <h3>{schedule.movie}</h3>
-                      <p>{schedule.hall}</p>
-                    </div>
-                  </div>
-
-                  <div className="schedule-item-right">
-                    <div className="time-info">
-                      <Clock className="time-icon" />
-                      <span>{schedule.time}</span>
-                    </div>
-                    <div className="schedule-detail">
-                      <p className="detail-label">Duration</p>
-                      <p className="detail-value">{schedule.duration}</p>
-                    </div>
-                    <div className="schedule-detail">
-                      <p className="detail-label">Capacity</p>
-                      <p className="detail-value capacity">
-                        {schedule.capacity}
-                      </p>
-                    </div>
-                    <div className="schedule-detail">
-                      <p className="detail-label">Price</p>
-                      <p className="detail-value">{schedule.price}</p>
-                    </div>
-                    <button className="edit-button">Edit</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {error ? (
+              <div className="error-message">{error}</div>
+            ) : (
+              <div className="schedule-timeline">
+                <Timeline
+                  groups={groups}
+                  items={timelineItems}
+                  defaultTimeStart={moment().startOf("day")}
+                  defaultTimeEnd={moment().endOf("day")}
+                  lineHeight={50}
+                  itemHeightRatio={0.75}
+                  sidebarWidth={150}
+                  canMove={true}
+                  canResize={false}
+                  stackItems
+                  traditionalZoom
+                  onItemMove={handleItemMove}
+                  timeSteps={{
+                    second: 0,
+                    minute: 15,
+                    hour: 1,
+                    day: 1,
+                    month: 1,
+                    year: 1,
+                  }}
+                  dragSnap={15 * 60 * 1000} // Snap to 15-minute intervals
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

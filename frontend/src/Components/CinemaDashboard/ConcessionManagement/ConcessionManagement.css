@@ -1,0 +1,192 @@
+/* ConcessionManagement.css */
+.page-container {
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  color: white;
+  padding: 24px;
+}
+
+.dashboard-content {
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+}
+
+.concession-container {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Header Styles */
+.concession-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-title h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.header-title p {
+  color: #9ca3af;
+  margin: 0;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #dc2626;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: #b91c1c;
+}
+
+/* Filter Section */
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.search-container {
+  flex: 1;
+  position: relative;
+}
+
+.search-container input {
+  width: 100%;
+  background-color: #3a3a3a;
+  color: white;
+  padding: 8px 16px 8px 40px;
+  border-radius: 8px;
+  border: none;
+}
+
+.search-container svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.cinema-select {
+  background-color: #3a3a3a;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  min-width: 150px;
+}
+
+/* Concessions Grid */
+.concessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.concession-card {
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.card-content {
+  display: flex;
+  gap: 16px;
+}
+
+.concession-image {
+  width: 112px;
+  height: 112px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.concession-details {
+  flex: 1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.concession-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 8px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  background-color: #3a3a3a;
+}
+
+/* Items Section */
+.items-section {
+  margin-top: 12px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #d1d5db;
+}
+
+.total-section {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #3a3a3a;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .concessions-grid {
+    grid-template-columns: 1fr;
+  }
+}
