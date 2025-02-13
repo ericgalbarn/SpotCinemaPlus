@@ -430,6 +430,67 @@ const api = {
       }
     },
   },
+  movies: {
+    getAll: async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await apiClient.get("/admin/movie", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Transform the API response to match our UI requirements
+        return response.data.map((movie) => ({
+          id: movie.id,
+          title: movie.name,
+          image: movie.poster,
+          duration: `${movie.length} min`,
+          status: movie.status === 1 ? "Now Showing" : "Coming Soon",
+          release: moment(movie.releaseDate).format("YYYY"),
+          trailerYoutubeId: movie.trailerYoutubeId,
+        }));
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch movies"
+        );
+      }
+    },
+
+    getById: async (movieId) => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await apiClient.get(`/admin/movie/${movieId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          throw new Error("Authentication required. Please log in again.");
+        }
+        throw new Error(
+          error.response?.data?.message || "Failed to fetch movie details"
+        );
+      }
+    },
+  },
 };
 
 export { api };

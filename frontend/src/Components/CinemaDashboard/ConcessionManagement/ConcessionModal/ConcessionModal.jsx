@@ -10,6 +10,7 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
     foods: [],
     drinks: [],
   });
+
   const [newItem, setNewItem] = useState({
     type: "food",
     name: "",
@@ -19,7 +20,25 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
 
   useEffect(() => {
     if (editData) {
-      setFormData(editData);
+      // Ensure arrays are properly initialized even if they don't exist in editData
+      setFormData({
+        name: editData.name || "",
+        description: editData.description || "",
+        comboPrice: editData.comboPrice || 0,
+        imageBase64: editData.imageBase64 || "",
+        foods: editData.foods || [],
+        drinks: editData.drinks || [],
+      });
+    } else {
+      // Reset form when not editing
+      setFormData({
+        name: "",
+        description: "",
+        comboPrice: 0,
+        imageBase64: "",
+        foods: [],
+        drinks: [],
+      });
     }
   }, [editData]);
 
@@ -28,23 +47,27 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Store the complete base64 string
         setFormData((prev) => ({ ...prev, imageBase64: reader.result }));
       };
-      reader.readAsDataURL(file); // This will generate the proper base64 format
+      reader.readAsDataURL(file);
     }
   };
 
   const addItem = () => {
+    if (!newItem.name || !newItem.price) {
+      alert("Please fill in both name and price for the item");
+      return;
+    }
+
     if (newItem.type === "food") {
       setFormData((prev) => ({
         ...prev,
-        foods: [...prev.foods, { ...newItem }],
+        foods: [...(prev.foods || []), { ...newItem }],
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
-        drinks: [...prev.drinks, { ...newItem }],
+        drinks: [...(prev.drinks || []), { ...newItem }],
       }));
     }
     setNewItem({ type: "food", name: "", description: "", price: 0 });
@@ -53,16 +76,16 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
   const removeItem = (type, index) => {
     setFormData((prev) => ({
       ...prev,
-      [type]: prev[type].filter((_, i) => i !== index),
+      [type]: (prev[type] || []).filter((_, i) => i !== index),
     }));
   };
 
   const calculateTotalPrice = () => {
-    const foodsTotal = formData.foods.reduce(
+    const foodsTotal = (formData.foods || []).reduce(
       (sum, item) => sum + Number(item.price),
       0
     );
-    const drinksTotal = formData.drinks.reduce(
+    const drinksTotal = (formData.drinks || []).reduce(
       (sum, item) => sum + Number(item.price),
       0
     );
@@ -72,10 +95,16 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const totalPrice = calculateTotalPrice();
-    onSubmit({
+
+    // Prepare the submission data
+    const submissionData = {
       ...formData,
       comboPrice: totalPrice,
-    });
+      foods: formData.foods || [],
+      drinks: formData.drinks || [],
+    };
+
+    onSubmit(submissionData);
   };
 
   if (!isOpen) return null;
@@ -170,7 +199,7 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
 
             <div className="items-list">
               <h4>Foods:</h4>
-              {formData.foods.map((food, index) => (
+              {(formData.foods || []).map((food, index) => (
                 <div key={index} className="item-row">
                   <span>
                     {food.name} - ${food.price}
@@ -185,7 +214,7 @@ const ConcessionModal = ({ isOpen, onClose, onSubmit, editData }) => {
               ))}
 
               <h4>Drinks:</h4>
-              {formData.drinks.map((drink, index) => (
+              {(formData.drinks || []).map((drink, index) => (
                 <div key={index} className="item-row">
                   <span>
                     {drink.name} - ${drink.price}
